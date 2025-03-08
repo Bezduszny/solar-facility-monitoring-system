@@ -1,0 +1,25 @@
+{
+  "name": "solar-facility-monitoring-system",
+  "version": "1.0.0",
+  "description": "Coding task for interview process",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bezduszny/solar-facility-monitoring-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bezduszny/solar-facility-monitoring-system/issues"
+  },
+  "homepage": "https://github.com/Bezduszny/solar-facility-monitoring-system#readme",
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}
