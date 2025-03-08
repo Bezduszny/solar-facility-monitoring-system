@@ -1,8 +1,8 @@
-import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import { buildSubgraphSchema } from '@apollo/subgraph';
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import { buildSubgraphSchema } from "@apollo/subgraph";
 import cors from "cors";
-import 'dotenv/config';
+import "dotenv/config";
 import express from "express";
 import { readFileSync } from "fs";
 import gql from "graphql-tag";
@@ -25,13 +25,7 @@ const apolloServer = new ApolloServer({
 });
 await apolloServer.start();
 
-
-app.use(
-  '/graphql',
-  cors(),
-  express.json(),
-  expressMiddleware(apolloServer),
-);
+app.use("/graphql", cors(), express.json(), expressMiddleware(apolloServer));
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

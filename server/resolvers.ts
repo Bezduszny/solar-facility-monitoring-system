@@ -8,8 +8,8 @@ const resolvers = {
   Query: {
     async facility(_, { id }) {
       let collection = db.collection("facilities");
-      let query = { _id: ObjectId.createFromHexString(id)}
-      return await collection.findOne(query)
+      let query = { _id: ObjectId.createFromHexString(id) };
+      return await collection.findOne(query);
     },
     async facilities() {
       let collection = await db.collection("facilities");
@@ -28,19 +28,17 @@ const resolvers = {
       const id = ObjectId.createFromHexString(args.id);
       let query = { _id: id };
       let collection = await db.collection("facilities");
-      const update = await collection.updateOne(
-        query,
-        { $set: { ...args } }
-      );
+      const update = await collection.updateOne(query, { $set: { ...args } });
 
-      if (update.acknowledged)
-        return await collection.findOne(query);
+      if (update.acknowledged) return await collection.findOne(query);
 
       return null;
     },
     async deleteFacility(_, { id }, context) {
       let collection = await db.collection("facilities");
-      const dbDelete = await collection.deleteOne({ _id: ObjectId.createFromHexString(id) });
+      const dbDelete = await collection.deleteOne({
+        _id: ObjectId.createFromHexString(id),
+      });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
   },

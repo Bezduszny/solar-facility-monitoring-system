@@ -7,7 +7,6 @@ type Mutation {
   createFacility(name: String!, nominalPower: Int): Facility
   deleteFacility(id: ID!): Boolean
   updateFacility(id: ID!, name: String, nominalPower: Int): Facility
-
 }
 
 type Facility {
@@ -15,4 +14,3 @@ type Facility {
   name: String
   nominalPower: Int
 }
-

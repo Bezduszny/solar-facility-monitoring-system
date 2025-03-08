@@ -12,10 +12,8 @@ const client = new MongoClient(uri, {
 try {
   await client.connect();
   await client.db("solar-facility-monitoring-system-wp").command({ ping: 1 });
-  console.log(
-    "Pinged your deployment. You successfully connected to MongoDB!"
-  );
-} catch(err) {
+  console.log("Pinged your deployment. You successfully connected to MongoDB!");
+} catch (err) {
   console.error(err);
 }
 
