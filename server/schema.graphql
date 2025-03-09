@@ -1,4 +1,5 @@
 scalar Upload
+scalar DateTimeISO
 
 type Query {
   facility(id: ID!): Facility
@@ -30,7 +31,7 @@ type Facility {
 type EnergyReport {
   id: ID!
   facility_id: ID!
-  # timestamp: DateTime
-  activePower_kW: Float
+  timestamp: DateTimeISO
+  active_power_kW: Float
   energy_kWh: Float
 }

@@ -7,8 +7,9 @@ export const GET_FACILITY = gql`
       nominalPower
       energyReports {
         id
+        timestamp
         facility_id
-        activePower_kW
+        active_power_kW
         energy_kWh
       }
     }

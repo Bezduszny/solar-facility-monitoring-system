@@ -1,9 +1,11 @@
 import csv from "csv-parser";
+import { DateTimeISOResolver } from "graphql-scalars";
 import GraphQLUpload from "graphql-upload/GraphQLUpload.mjs";
 import { ObjectId } from "mongodb";
 import db from "./db/connection.ts";
 
 const resolvers = {
+  DateTimeISO: DateTimeISOResolver,
   Upload: GraphQLUpload,
   Facility: {
     id: (parent) => parent.id ?? parent._id,
@@ -80,6 +82,7 @@ const resolvers = {
           .pipe(csv())
           .on("data", (data) => {
             data.facility_id = facility_id;
+            data.timestamp = new Date(data.timestamp).toISOString();
             results.push(data);
           })
           .on("end", async () => {
