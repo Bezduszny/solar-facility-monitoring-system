@@ -4,12 +4,16 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import App from "./App";
-import { CreateFacility, UpdateFacility } from "./components/Facility";
+import FacilityView from "./components/Facility";
+import { CreateFacility, UpdateFacility } from "./components/FacilityForm";
 import Facilities from "./components/FacilityList";
 
 const apolloClient = new ApolloClient({
-  uri: `${import.meta.env.VITE_BACKEND_URL}/graphql/`,
+  link: createUploadLink({
+    uri: `${import.meta.env.VITE_BACKEND_URL}/graphql/`,
+  }),
   cache: new InMemoryCache(),
 });
 
@@ -43,6 +47,11 @@ const router = createBrowserRouter([
         element: <CreateFacility />,
       },
     ],
+  },
+  {
+    path: "/facility/:id",
+    element: <App />,
+    children: [{ path: "/facility/:id", element: <FacilityView /> }],
   },
 ]);
 

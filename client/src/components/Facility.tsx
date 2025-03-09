@@ -1,181 +1,78 @@
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { useMutation, useQuery } from "@apollo/client";
+import { Box, Typography } from "@mui/material";
+import { useParams } from "react-router-dom";
 
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { Controller, useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { UPLOAD_CSV } from "../api/mutations";
+import { GET_FACILITY } from "../api/queries";
 
-interface FacilityFormData {
-  name: string;
-  nominalPower: number | null;
-}
-
-interface FacilityFormBaseProps {
-  onSubmit: (data: FacilityFormData) => Promise<any>;
-  defaultValues?: FacilityFormData;
-  isNew?: boolean;
-}
-
-function FacilityFormBase({
-  onSubmit,
-  defaultValues,
-  isNew = true,
-}: FacilityFormBaseProps) {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FacilityFormData>({
-    defaultValues: defaultValues || { name: "", nominalPower: null },
+export default function FacilityView() {
+  const { id } = useParams<{ id: string }>();
+  const { loading, error, data } = useQuery(GET_FACILITY, {
+    variables: { id: id },
   });
+
+  if (loading) return "Loading";
+  if (error) return `Error: ${error}`;
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        {isNew ? "Create Facility" : "Update Facility"}
-      </Typography>
-      <Paper sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <Controller
-              name="name"
-              control={control}
-              rules={{ required: "Name is required" }}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Name"
-                  variant="outlined"
-                  fullWidth
-                  error={!!errors.name}
-                  helperText={errors.name?.message}
-                />
-              )}
-            />
-            <Controller
-              name="nominalPower"
-              control={control}
-              rules={{
-                min: {
-                  value: 0,
-                  message: "Nominal Power must be greater than or equal to 0",
-                },
-              }}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Nominal Power"
-                  variant="outlined"
-                  fullWidth
-                  type="number"
-                  error={!!errors.nominalPower}
-                  helperText={errors.nominalPower?.message}
-                  value={field.value === null ? "" : field.value}
-                  // slotProps={{ htmlInput: { min: 0 } }}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    field.onChange(value === "" ? null : Number(value));
-                  }}
-                />
-              )}
-            />
-          </Box>
-
-          <Button type="submit" variant="contained" sx={{ mt: 3 }}>
-            {isNew ? "Create Facility" : "Update Facility"}
-          </Button>
-        </form>
-      </Paper>
+      <Typography variant="h4">Facility: {data.facility.name}</Typography>
+      <Typography>Nominal Power: {data.facility.nominalPower}</Typography>
+      <FileUploadForm facility_id={id} />
+      {data.facility.energyReports.map((report) => {
+        return <div key={report.id}>{JSON.stringify(report)}</div>;
+      })}
     </Box>
   );
 }
 
-const CREATE_FACILITY = gql`
-  mutation CreateFacility($name: String!, $nominalPower: Int!) {
-    createFacility(name: $name, nominalPower: $nominalPower) {
-      id
-      name
-      nominalPower
-    }
-  }
-`;
-
-export function CreateFacility() {
-  const navigate = useNavigate();
-
-  const [createFacility] = useMutation(CREATE_FACILITY, {
-    onCompleted: () => {
-      navigate("/");
-    },
-    onError: (error) => {
-      console.error("Error creating facility:", error);
-    },
-    refetchQueries: ["facilities"],
+function FileUploadForm({ facility_id }: { facility_id: string }) {
+  const [uploadCSV, { loading, error, data }] = useMutation(UPLOAD_CSV, {
+    refetchQueries: ["facility"],
   });
 
-  function onSubmit(formData: FacilityFormData) {
-    return createFacility({ variables: formData });
-  }
-
-  return <FacilityFormBase onSubmit={onSubmit} isNew />;
-}
-
-const GET_FACILITY = gql`
-  query GetFacility($id: ID!) {
-    facility(id: $id) {
-      id
-      name
-      nominalPower
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const file = e.target.file.files[0];
+    if (!file) {
+      alert("Please select a file to upload.");
+      return;
     }
-  }
-`;
 
-const UPDATE_FACILITY = gql`
-  mutation UpdateFacility($id: ID!, $name: String!, $nominalPower: Int) {
-    updateFacility(id: $id, name: $name, nominalPower: $nominalPower) {
-      id
-      name
-      nominalPower
+    try {
+      const result = await uploadCSV({
+        variables: { file, facility_id: facility_id },
+        context: {
+          headers: {
+            "apollo-require-preflight": true,
+          },
+        },
+      });
+      console.log("Mutation result:", result);
+      alert("File uploaded successfully!");
+    } catch (err) {
+      console.error("Error uploading file:", err);
+      alert("Failed to upload file.");
     }
-  }
-`;
-
-export function UpdateFacility() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  const { loading, error, data } = useQuery(GET_FACILITY, {
-    variables: { id },
-    onCompleted: (data) => {
-      if (data?.facility) {
-        return data.facility;
-      }
-    },
-  });
-
-  const [updateFacility] = useMutation(UPDATE_FACILITY, {
-    onCompleted: () => {
-      navigate("/");
-    },
-    onError: (error) => {
-      console.error("Error updating facility:", error);
-    },
-    refetchQueries: ["facilities"],
-  });
-
-  function onSubmit(formData: FacilityFormData) {
-    return updateFacility({ variables: { id: id!, ...formData } });
-  }
-
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography>Error: {error.message}</Typography>;
-  if (!data.facility)
-    return <Typography>Error: Facility does not exist.</Typography>;
+  };
 
   return (
-    <FacilityFormBase
-      onSubmit={onSubmit}
-      defaultValues={data?.facility}
-      isNew={false}
-    />
+    <form onSubmit={handleSubmit}>
+      <input type="file" name="file" required />
+      <button type="submit" disabled={loading}>
+        {loading ? "Uploading..." : "Upload"}
+      </button>
+      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
+      {data && (
+        <>
+          <p style={{ color: "green" }}>
+            {data.uploadCSV.success && "Success!"}
+          </p>
+          <p>Inserted {data.uploadCSV.insertedCount} entries.</p>
+          <p>Updated {data.uploadCSV.modifiedCount} entries.</p>
+          <p>Ignored {data.uploadCSV.duplicatesIgnored} duplicated entries.</p>
+        </>
+      )}
+    </form>
   );
 }

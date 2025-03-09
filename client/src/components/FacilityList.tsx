@@ -1,4 +1,4 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   Box,
   Button,
@@ -12,6 +12,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import { DELETE_FACILITY } from "../api/mutations";
+import { GET_FACILITIES } from "../api/queries";
 
 interface Facility {
   id: string;
@@ -19,16 +21,16 @@ interface Facility {
   nominalPower?: number;
 }
 
-const DELETE_FACILITY = gql`
-  mutation DeleteFacility($id: ID!) {
-    deleteFacility(id: $id)
-  }
-`;
-
 function FacilityRow({ facility }: { facility: Facility }) {
   const [deleteFacility, {}] = useMutation(DELETE_FACILITY, {
     refetchQueries: ["facilities"],
   });
+
+  const actionButtonStyle = {
+    textTransform: "none",
+    fontSize: "0.875rem",
+    fontWeight: "medium",
+  };
 
   return (
     <TableRow
@@ -43,24 +45,24 @@ function FacilityRow({ facility }: { facility: Facility }) {
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             component={Link}
+            to={`facility/${facility.id}`}
+            variant="outlined"
+            sx={actionButtonStyle}
+          >
+            View
+          </Button>
+          <Button
+            component={Link}
             to={`/edit/${facility.id}`}
             variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontSize: "0.875rem",
-              fontWeight: "medium",
-            }}
+            sx={actionButtonStyle}
           >
             Edit
           </Button>
           <Button
             variant="outlined"
             color="error"
-            sx={{
-              textTransform: "none",
-              fontSize: "0.875rem",
-              fontWeight: "medium",
-            }}
+            sx={actionButtonStyle}
             onClick={() => {
               deleteFacility({ variables: { id: facility.id } });
             }}
@@ -72,16 +74,6 @@ function FacilityRow({ facility }: { facility: Facility }) {
     </TableRow>
   );
 }
-
-const GET_FACILITIES = gql`
-  query facilities {
-    facilities {
-      id
-      name
-      nominalPower
-    }
-  }
-`;
 
 export default function Facilities() {
   const { loading, error, data } = useQuery(GET_FACILITIES);
