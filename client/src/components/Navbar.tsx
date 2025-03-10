@@ -2,7 +2,7 @@ import { AppBar, Box, Button, Toolbar } from "@mui/material";
 import { styled } from "@mui/system";
 import { NavLink } from "react-router-dom";
 
-const StyledNavLink = styled(NavLink)(({ theme }) => ({
+const StyledNavLink = styled(NavLink)(() => ({
   textDecoration: "none",
   color: "inherit",
 }));
