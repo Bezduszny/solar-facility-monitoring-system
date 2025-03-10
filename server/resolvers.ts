@@ -9,7 +9,7 @@ const resolvers = {
   Upload: GraphQLUpload,
   Facility: {
     id: (parent) => parent.id ?? parent._id,
-    async energyReports(facility) {
+    energyReports: async (facility) => {
       return db
         .collection("energyReports")
         .find({ facility_id: facility.id ?? facility._id })
@@ -101,7 +101,7 @@ const resolvers = {
       });
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
-    uploadCSV: async (_, { file, facility_id }) => {
+    async uploadCSV(_, { file, facility_id }) {
       const facilityCollection = await db.collection("facilities");
       const facility = await facilityCollection.findOne({ id: facility_id });
 
