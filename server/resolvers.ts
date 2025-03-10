@@ -15,6 +15,42 @@ const resolvers = {
         .find({ facility_id: facility.id ?? facility._id })
         .toArray();
     },
+    availableReportsDates: async (facility) => {
+      return db
+        .collection("energyReports")
+        .aggregate([
+          {
+            $match: {
+              facility_id: facility.id ?? facility._id,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                year: { $year: "$timestamp" },
+                month: { $month: "$timestamp" },
+                day: { $dayOfMonth: "$timestamp" },
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day",
+                },
+              },
+            },
+          },
+          {
+            $sort: { date: 1 },
+          },
+        ])
+        .toArray();
+    },
   },
   EnergyReport: {
     id: (x) => x.id ?? x._id,
@@ -82,7 +118,7 @@ const resolvers = {
           .pipe(csv())
           .on("data", (data) => {
             data.facility_id = facility_id;
-            data.timestamp = new Date(data.timestamp).toISOString();
+            data.timestamp = new Date(data.timestamp + "Z");
             results.push(data);
           })
           .on("end", async () => {

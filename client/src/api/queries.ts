@@ -5,6 +5,7 @@ export const GET_FACILITY = gql`
     facility(id: $id) {
       name
       nominalPower
+      availableReportsDates
       energyReports {
         id
         timestamp

@@ -1,5 +1,6 @@
 scalar Upload
 scalar DateTimeISO
+scalar Date
 
 type Query {
   facility(id: ID!): Facility
@@ -26,6 +27,7 @@ type Facility {
   name: String
   nominalPower: Int
   energyReports: [EnergyReport!]!
+  availableReportsDates: [Date!]!
 }
 
 type EnergyReport {
