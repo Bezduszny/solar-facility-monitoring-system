@@ -10,9 +10,11 @@ import FacilityView from "./components/Facility";
 import { CreateFacility, UpdateFacility } from "./components/FacilityForm";
 import Facilities from "./components/FacilityList";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5050";
+
 const apolloClient = new ApolloClient({
   link: createUploadLink({
-    uri: `${import.meta.env.VITE_BACKEND_URL}/graphql/`,
+    uri: `${BACKEND_URL}/graphql/`,
   }),
   cache: new InMemoryCache(),
 });

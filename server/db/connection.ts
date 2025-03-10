@@ -2,7 +2,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 
 import * as crypto from "node:crypto";
 
-const uri = process.env.DB_URI || "";
+const uri = process.env.DB_URI || "mongodb://localhost:27017";
 const dbName = process.env.DB_NAME || crypto.randomBytes(20).toString("hex");
 
 const client = new MongoClient(uri, {
