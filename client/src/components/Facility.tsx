@@ -37,7 +37,9 @@ export default function FacilityView() {
     dayjs.utc(report.timestamp).isSame(selectedDate, "day")
   );
 
-  const xAxisData = reports.map((report) => dayjs.utc(report.timestamp));
+  const xAxisData = reports.map((report) =>
+    dayjs.utc(report.timestamp).valueOf()
+  );
   const yAxisData = reports.map((report) => report.active_power_kW);
   const y2AxisData = reports.map((report) => report.energy_kWh);
 
