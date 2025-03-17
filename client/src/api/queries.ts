@@ -3,6 +3,7 @@ import { gql } from "@apollo/client";
 export const GET_FACILITY = gql`
   query facility($id: ID!) {
     facility(id: $id) {
+      id
       name
       nominalPower
       availableReportsDates
