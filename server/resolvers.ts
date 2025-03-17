@@ -8,11 +8,13 @@ const resolvers = {
   DateTimeISO: DateTimeISOResolver,
   Upload: GraphQLUpload,
   Facility: {
-    id: (parent) => parent.id ?? parent._id,
+    id: (facility) => {
+      return facility.id ?? facility._id.toHexString();
+    },
     energyReports: async (facility) => {
       return db
         .collection("energyReports")
-        .find({ facility_id: facility.id ?? facility._id })
+        .find({ facility_id: facility._id })
         .toArray();
     },
     availableReportsDates: async (facility) => {
@@ -21,7 +23,7 @@ const resolvers = {
         .aggregate([
           {
             $match: {
-              facility_id: facility.id ?? facility._id,
+              facility_id: facility._id,
             },
           },
           {
@@ -53,7 +55,7 @@ const resolvers = {
     },
   },
   EnergyReport: {
-    id: (x) => x.id ?? x._id,
+    id: (report) => report.id ?? report._id.toHexString(),
   },
   Query: {
     async facility(_, { id }) {
@@ -81,7 +83,7 @@ const resolvers = {
       let collection = await db.collection("facilities");
       const insert = await collection.insertOne({ name, nominalPower });
       if (insert.acknowledged)
-        return { name, nominalPower, id: insert.insertedId };
+        return { name, nominalPower, id: insert.insertedId.toHexString() };
       return null;
     },
     async updateFacility(_, args, context) {
@@ -103,7 +105,9 @@ const resolvers = {
     },
     async uploadCSV(_, { file, facility_id }) {
       const facilityCollection = await db.collection("facilities");
-      const facility = await facilityCollection.findOne({ id: facility_id });
+      const facility = await facilityCollection.findOne({
+        _id: ObjectId.createFromHexString(facility_id),
+      });
 
       if (!facility) {
         throw new Error("Facility not found");
@@ -117,7 +121,7 @@ const resolvers = {
         stream
           .pipe(csv())
           .on("data", (data) => {
-            data.facility_id = facility_id;
+            data.facility_id = ObjectId.createFromHexString(facility_id);
             data.timestamp = new Date(data.timestamp + "Z");
             results.push(data);
           })
@@ -139,7 +143,6 @@ const resolvers = {
                 ordered: false,
               });
 
-              console.log(result);
               resolve({
                 success: true,
                 insertedCount: result.upsertedCount,
