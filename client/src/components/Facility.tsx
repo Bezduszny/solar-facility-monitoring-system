@@ -121,7 +121,7 @@ function FileUploadForm({ facility_id }: { facility_id: string }) {
     const file = e.target.file.files[0];
 
     try {
-      const result = await uploadCSV({
+      await uploadCSV({
         variables: { file, facility_id: facility_id },
         context: {
           headers: {
@@ -129,7 +129,6 @@ function FileUploadForm({ facility_id }: { facility_id: string }) {
           },
         },
       });
-      console.log("Mutation result:", result);
     } catch (err) {
       console.error("Error uploading file:", err);
     }
