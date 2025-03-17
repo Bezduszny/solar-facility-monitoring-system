@@ -4,7 +4,8 @@ import { useMutation, useQuery } from "@apollo/client";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { CREATE_FACILITY, UPDATE_FACILITY } from "../api/mutations";
-import { GET_FACILITY_NO_REPORTS } from "../api/queries";
+import { GET_FACILITIES, GET_FACILITY_NO_REPORTS } from "../api/queries";
+import { apolloClient } from "../main";
 
 interface FacilityFormData {
   name: string;
@@ -101,17 +102,40 @@ function FacilityFormBase({
   );
 }
 
+interface GetFacilitiesQueryResult {
+  facilities: any[];
+}
+
+function updateFacilitiesCache(newFacility) {
+  const data = apolloClient.cache.readQuery<GetFacilitiesQueryResult>({
+    query: GET_FACILITIES,
+  });
+
+  // This query has not been cached yet, therefore does not need to be updated
+  if (data === null) {
+    return;
+  }
+
+  apolloClient.cache.writeQuery({
+    query: GET_FACILITIES,
+    data: {
+      facilities: [...data.facilities, newFacility],
+    },
+  });
+}
+
 export function CreateFacility() {
   const navigate = useNavigate();
 
   const [createFacility] = useMutation(CREATE_FACILITY, {
-    onCompleted: () => {
+    onCompleted: (data) => {
+      const newFacility = data.createFacility;
+      updateFacilitiesCache(newFacility);
       navigate("/");
     },
     onError: (error) => {
       console.error("Error creating facility:", error);
     },
-    refetchQueries: ["facilities"],
   });
 
   function onSubmit(formData: FacilityFormData) {

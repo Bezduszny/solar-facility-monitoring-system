@@ -12,7 +12,7 @@ import Facilities from "./components/FacilityList";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5050";
 
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
   link: createUploadLink({
     uri: `${BACKEND_URL}/graphql/`,
   }),
