@@ -41,7 +41,17 @@ function FacilityFormBase({
             <Controller
               name="name"
               control={control}
-              rules={{ required: "Name is required" }}
+              rules={{
+                required: "Facility name is required.",
+                validate: {
+                  atLeastThreeLetters: (value) =>
+                    (value.match(/[A-Za-z]/g) || []).length >= 3 ||
+                    "Facility name must contain at least 3 letters.",
+                  noConsecutiveWhitespace: (value) =>
+                    !/\s{2,}/.test(value) ||
+                    "Facility name must not contain consecutive whitespaces.",
+                },
+              }}
               render={({ field }) => (
                 <TextField
                   {...field}
