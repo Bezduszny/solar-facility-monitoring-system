@@ -5,7 +5,7 @@ scalar Date
 type Query {
   facility(id: ID!): Facility
   facilities: [Facility]
-  energyReports(facility_id: ID!): [EnergyReport]
+  # energyReports(facility_id: ID!): [EnergyReport]
 }
 
 type Mutation {
@@ -22,18 +22,18 @@ type UploadResult {
   duplicatesIgnored: Int
 }
 
-type Facility {
-  id: ID!
-  name: String
-  nominalPower: Int
-  energyReports: [EnergyReport!]!
-  availableReportsDates: [Date!]!
+type Facility @entity {
+  id: ID! @id
+  name: String @column
+  nominalPower: Int @column
+  energyReports: [EnergyReport!]
+  availableReportsDates: [Date!]
 }
 
-type EnergyReport {
-  id: ID!
-  facility_id: ID!
-  timestamp: DateTimeISO
-  active_power_kW: Float
-  energy_kWh: Float
+type EnergyReport @entity {
+  id: ID! @id
+  facility_id: ID! @link
+  timestamp: DateTimeISO @column
+  active_power_kW: Float @column
+  energy_kWh: Float @column
 }

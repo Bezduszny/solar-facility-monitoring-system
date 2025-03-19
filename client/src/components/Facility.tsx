@@ -149,9 +149,7 @@ function FileUploadForm({ facility_id }: { facility_id: string }) {
         {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
         {data && (
           <>
-            <p style={{ color: "green" }}>
-              {data.uploadCSV.success && "Success!"}
-            </p>
+            <p style={{ color: "green" }}>Success!</p>
             <p>Inserted {data.uploadCSV.insertedCount} entries.</p>
             <p>Updated {data.uploadCSV.modifiedCount} entries.</p>
             <p>

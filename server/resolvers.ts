@@ -2,88 +2,61 @@ import csv from "csv-parser";
 import { DateTimeISOResolver } from "graphql-scalars";
 import GraphQLUpload from "graphql-upload/GraphQLUpload.mjs";
 import { ObjectId } from "mongodb";
+import {
+  EnergyReportDbObject,
+  FacilityDbObject,
+  Resolvers,
+} from "./__generated__/resolvers-types.ts";
+import { ApolloContext } from "./apollo.ts";
 import db from "./db/connection.ts";
 
-const resolvers = {
+const resolvers: Resolvers = {
   DateTimeISO: DateTimeISOResolver,
   Upload: GraphQLUpload,
   Facility: {
     id: (facility) => {
-      return facility.id ?? facility._id.toHexString();
+      return facility._id.toHexString();
     },
-    energyReports: async (facility) => {
-      return db
-        .collection("energyReports")
-        .find({ facility_id: facility._id })
-        .toArray();
+    energyReports: async (facility, _, context: ApolloContext) => {
+      return await context.energyReportsLoader.load(facility._id);
     },
-    availableReportsDates: async (facility) => {
-      return db
-        .collection("energyReports")
-        .aggregate([
-          {
-            $match: {
-              facility_id: facility._id,
-            },
-          },
-          {
-            $group: {
-              _id: {
-                year: { $year: "$timestamp" },
-                month: { $month: "$timestamp" },
-                day: { $dayOfMonth: "$timestamp" },
-              },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              date: {
-                $dateFromParts: {
-                  year: "$_id.year",
-                  month: "$_id.month",
-                  day: "$_id.day",
-                },
-              },
-            },
-          },
-          {
-            $sort: { date: 1 },
-          },
-        ])
-        .toArray();
+    availableReportsDates: async (facility, _, context) => {
+      return await context.availableReportsDatesLoader.load(facility._id);
     },
   },
   EnergyReport: {
-    id: (report) => report.id ?? report._id.toHexString(),
+    id: (report) => report._id.toHexString(),
   },
   Query: {
     async facility(_, { id }) {
-      let collection = db.collection("facilities");
+      let collection = db.collection<FacilityDbObject>("facilities");
       let query = { _id: ObjectId.createFromHexString(id) };
       return await collection.findOne(query);
     },
     async facilities() {
-      let collection = await db.collection("facilities");
+      let collection = await db.collection<FacilityDbObject>("facilities");
       return await collection.find({}).toArray();
     },
-    async energyReports(_, { facilityId, startTime, endTime }) {
-      let query = { facilityId: ObjectId.createFromHexString(facilityId) };
-      if (startTime && endTime) {
-        query.timestamp = {
-          $gte: new Date(startTime),
-          $lte: new Date(endTime),
-        };
-      }
-      return db.collection("energyReports").find(query).toArray();
+    async energyReports(_, { facility_id }) {
+      let query = {
+        facility_id: ObjectId.createFromHexString(facility_id),
+      };
+      return await db
+        .collection<EnergyReportDbObject>("energyReports")
+        .find(query)
+        .toArray();
     },
   },
   Mutation: {
     async createFacility(_, { name, nominalPower }, context) {
       let collection = await db.collection("facilities");
       const insert = await collection.insertOne({ name, nominalPower });
+
       if (insert.acknowledged)
-        return { name, nominalPower, id: insert.insertedId.toHexString() };
+        return (await collection.findOne({
+          _id: insert.insertedId,
+        })) as FacilityDbObject;
+
       return null;
     },
     async updateFacility(_, args, context) {
@@ -92,15 +65,17 @@ const resolvers = {
       let collection = await db.collection("facilities");
       const update = await collection.updateOne(query, { $set: { ...args } });
 
-      if (update.acknowledged) return await collection.findOne(query);
+      if (update.acknowledged)
+        return (await collection.findOne(query)) as FacilityDbObject;
 
       return null;
     },
-    async deleteFacility(_, { id }, context) {
+    async deleteFacility(_, { id }) {
       let collection = await db.collection("facilities");
       const dbDelete = await collection.deleteOne({
         _id: ObjectId.createFromHexString(id),
       });
+
       return dbDelete.acknowledged && dbDelete.deletedCount == 1 ? true : false;
     },
     async uploadCSV(_, { file, facility_id }) {
@@ -144,7 +119,6 @@ const resolvers = {
               });
 
               resolve({
-                success: true,
                 insertedCount: result.upsertedCount,
                 modifiedCount: result.modifiedCount,
                 duplicatesIgnored:

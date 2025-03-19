@@ -5,7 +5,7 @@ import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import graphqlUploadExpress from "graphql-upload/graphqlUploadExpress.mjs";
-import apolloServer from "./apollo.ts";
+import apolloServer, { createContext } from "./apollo.ts";
 const PORT = process.env.PORT || 5050;
 
 const app = express();
@@ -18,7 +18,9 @@ app.use(
   "/graphql",
   express.json(),
   graphqlUploadExpress({ maxFileSize: 1000000, maxFiles: 1 }),
-  expressMiddleware(apolloServer)
+  expressMiddleware(apolloServer, {
+    context: createContext,
+  })
 );
 
 app.listen(PORT, () => {
